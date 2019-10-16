@@ -12,74 +12,95 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 
+import java.text.SimpleDateFormat
+
 import net.kaleidos.grails.plugin.security.stateless.CryptoService
 import net.kaleidos.grails.plugin.security.stateless.utils.UrlSafeBase64Utils
 import net.kaleidos.grails.plugin.security.stateless.exception.StatelessValidationException
 
 @Slf4j
 class JwtStatelessTokenProvider implements StatelessTokenProvider {
-    private static final String BEARER = "Bearer "
 
-    CryptoService cryptoService
-    Integer expirationTime
+   private static final String BEARER = "Bearer "
 
-    public void init(Integer expirationTime) {
-        this.expirationTime = expirationTime
-    }
+   CryptoService cryptoService
+   Integer expirationTime
 
-    String generateToken(String userName, String salt=null, Map<String,String> extraData=[:]){
-        def data = [username:userName]
+   public void init(Integer expirationTime) {
+      this.expirationTime = expirationTime
+   }
 
-        if (extraData) {
-            data["extradata"] = extraData
-        }
+   String generateToken(String userName, String salt=null, Map<String,String> extraData=[:])
+   {
+      def data = [username:userName]
 
-        if (salt != null) {
-            data["salt"] = salt
-        }
+      if (extraData) {
+         data["extradata"] = extraData
+      }
 
-        DateTimeFormatter formatter = ISODateTimeFormat.dateTime()
-        data["issued_at"] = formatter.print(new DateTime())
+      if (salt != null) {
+         data["salt"] = salt
+      }
 
-        if (expirationTime != null) {
-            data["expires_at"] = formatter.print(new DateTime().plusMinutes(expirationTime))
-        }
+      DateTimeFormatter formatter = ISODateTimeFormat.dateTime()
+      data["issued_at"] = formatter.print(new DateTime())
 
-        String header = new JsonBuilder([alg:"HS256", typ: "JWT"])
-        String payload = new JsonBuilder(data).toString()
-        String signature = cryptoService.hash("${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}")
+      if (expirationTime != null) {
+         data["expires_at"] = formatter.print(new DateTime().plusMinutes(expirationTime))
+      }
 
-        return "${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}.${signature}"
-    }
+      String header = new JsonBuilder([alg:"HS256", typ: "JWT"])
+      String payload = new JsonBuilder(data).toString()
+      String signature = cryptoService.hash("${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}")
 
-    Map validateAndExtractToken(String token) {
-        if (!token) {
-            log.debug "Token must be present"
-            throw new StatelessValidationException("Invalid token")
-        }
+      return "${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}.${signature}"
+   }
 
-        if (token.startsWith(BEARER)){
-            token = token.substring(BEARER.size())
-        }
+   Map validateAndExtractToken(String token)
+   {
+      if (!token) {
+         log.debug "Token must be present"
+         throw new StatelessValidationException("Invalid token")
+      }
 
-        def (header64, payload64, signature) = token.tokenize(".")
+      if (token.startsWith(BEARER)){
+         token = token.substring(BEARER.size())
+      }
 
-        if (header64 == null || payload64 == null || signature == null) {
-            log.debug "Token should have two points to split"
-            throw new StatelessValidationException("Invalid token")
-        }
+      def (header64, payload64, signature) = token.tokenize(".")
 
-        // Validate signature
-        String expectedSignature = cryptoService.hash("${header64}.${payload64}")
+      if (header64 == null || payload64 == null || signature == null) {
+         log.debug "Token should have two points to split"
+         throw new StatelessValidationException("Invalid token")
+      }
 
-        if (signature != expectedSignature) {
-            throw new StatelessValidationException("Invalid token")
-        }
+      // Validate signature
+      String expectedSignature = cryptoService.hash("${header64}.${payload64}")
 
-        // Extract the payload
-        def slurper = new JsonSlurper()
-        def payload = new String(UrlSafeBase64Utils.decode(payload64))
+      if (signature != expectedSignature) {
+         throw new StatelessValidationException("Invalid token")
+      }
 
-        return (Map)slurper.parseText(payload)
+      // Extract the payload
+      def slurper = new JsonSlurper()
+      def payload = new String(UrlSafeBase64Utils.decode(payload64))
+      def parsed = (Map)slurper.parseText(payload)
+
+      //println "PARSED TOKEN : "+ slurper.parseText(payload)
+      // Check expiration
+      def now = new Date()
+
+      def s = parsed.expires_at
+      def f = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+      SimpleDateFormat sdf = new SimpleDateFormat(f)
+      sdf.setLenient(false)
+      def expires_at = sdf.parse(s)
+
+      if (expires_at < now)
+      {
+         throw new StatelessValidationException("Expired token")
+      }
+
+      return parsed
     }
 }

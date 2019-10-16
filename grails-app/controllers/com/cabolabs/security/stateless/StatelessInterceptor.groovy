@@ -6,6 +6,8 @@ import groovy.json.JsonBuilder
 
 class StatelessInterceptor {
 
+   int order = HIGHEST_PRECEDENCE + 50
+
    def statelessTokenProvider
 
    public StatelessInterceptor() {
