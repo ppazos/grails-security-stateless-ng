@@ -2,6 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
@@ -22,6 +23,7 @@ apply plugin:"org.grails.grails-gsp"
 repositories {
     mavenLocal()
     maven { url "https://repo.grails.org/grails/core" }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
