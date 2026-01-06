@@ -13,7 +13,7 @@ buildscript {
     }
 }
 
-version "0.1.4"
+version "0.1.5"
 group "grails.security.stateless.ng"
 
 apply plugin:"eclipse"
@@ -88,7 +88,13 @@ tasks.withType(asset.pipeline.gradle.AssetPluginPackage) {
 publishing {
     publications {
         maven(MavenPublication) {
-            from components.java
+            //from components.java
+
+            groupId = 'com.github.ppazos'
+            artifactId = 'grails-security-stateless-ng'
+            version = project.version
+            
+            artifact jar  // Explicitly include the jar
             
             pom {
                 name = 'Stateless Security NG Grails Plugin'
