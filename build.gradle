@@ -1,72 +1,84 @@
 buildscript {
     repositories {
         mavenLocal()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
         maven { url "https://repo.grails.org/grails/core" }
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:2.14.2"
+        
+        // REQUIRED: This plugin handles the 'runtime' configurations correctly for Spring Boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.7.18"
+        
+        classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion" // there is no version 5.3.6
+
+        // UPDATE: Asset-pipeline 3.x+ is required for Groovy 3 / Grails 5 compatibility
+        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.4.7"
     }
 }
 
-version "0.1"
+version "0.1.2"
 group "grails.security.stateless.ng"
 
 apply plugin:"eclipse"
 apply plugin:"idea"
+apply plugin:"org.springframework.boot"
 apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
-apply plugin:"asset-pipeline"
+// apply plugin:"org.grails.grails-plugin-publish"
 apply plugin:"org.grails.grails-gsp"
+apply plugin: "com.bertramlabs.asset-pipeline"
 
 repositories {
     mavenLocal()
+    mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    compile "org.springframework.boot:spring-boot-starter-logging"
-    compile "org.springframework.boot:spring-boot-autoconfigure"
-    compile "org.grails:grails-core"
-    compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-starter-tomcat"
-    compile "org.grails:grails-web-boot"
-    compile "org.grails:grails-logging"
-    compile "org.grails:grails-plugin-rest"
-    //compile "org.grails:grails-plugin-databinding"
-    compile "org.grails:grails-plugin-i18n"
-    compile "org.grails:grails-plugin-services"
-    compile "org.grails:grails-plugin-url-mappings"
-    compile "org.grails:grails-plugin-interceptors"
-    //compile "org.grails.plugins:cache"
-    compile "org.grails.plugins:async"
-    compile "org.grails.plugins:scaffolding"
-    compile "org.grails.plugins:gsp"
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "org.grails:grails-core"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-tomcat"
+    implementation "org.grails:grails-web-boot"
+    implementation "org.grails:grails-logging"
+    implementation "org.grails:grails-plugin-rest"
+    //implementation "org.grails:grails-plugin-databinding"
+    implementation "org.grails:grails-plugin-i18n"
+    implementation "org.grails:grails-plugin-services"
+    implementation "org.grails:grails-plugin-url-mappings"
+    implementation "org.grails:grails-plugin-interceptors"
+    //implementation "org.grails.plugins:cache"
+    implementation "org.grails.plugins:async"
+    implementation "org.grails.plugins:scaffolding"
+    implementation "org.grails.plugins:gsp"
     console "org.grails:grails-console"
     profile "org.grails.profiles:web-plugin"
-    provided "org.grails:grails-plugin-services"
+    compileOnly "org.grails:grails-plugin-services"
     //provided "org.grails:grails-plugin-domain-class"
-    runtime "com.bertramlabs.plugins:asset-pipeline-grails:2.14.2"
-    testCompile "org.grails:grails-gorm-testing-support"
-    testCompile "org.grails:grails-plugin-testing"
-    //testCompile "org.grails.plugins:geb"
-    testCompile "org.grails:grails-web-testing-support"
-    //testRuntime "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
-    //testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
+    runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:2.14.2"
+    testImplementation "org.grails:grails-gorm-testing-support"
+    testImplementation "org.grails:grails-plugin-testing"
+    //testImplementation "org.grails.plugins:geb"
+    testImplementation "org.grails:grails-web-testing-support"
+    //testImplementation "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
+    //testImplementation "net.sourceforge.htmlunit:htmlunit:2.18"
 
-    compile group: 'joda-time', name: 'joda-time', version: '2.10.1'
+    implementation group: 'joda-time', name: 'joda-time', version: '2.10.1'
 }
 
 bootRun {
     jvmArgs('-Dspring.output.ansi.enabled=always')
-    addResources = true
+    sourceResources sourceSets.main
     String springProfilesActive = 'spring.profiles.active'
     systemProperty springProfilesActive, System.getProperty(springProfilesActive)
 }
 // enable if you wish to package this plugin as a standalone application
-bootRepackage.enabled = false
+bootJar.enabled = false
+
+/*
 grailsPublish {
     // TODO: Provide values here
     user = 'user'
@@ -75,11 +87,11 @@ grailsPublish {
     license {
         name = 'Apache-2.0'
     }
-    title = "My Plugin"
+    title = "Stateless Security NG Grails Plugin"
     desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
+    developers = [ppazos:"Pablo Pazos"]
 }
-
+*/
 
 assets {
     packagePlugin = true

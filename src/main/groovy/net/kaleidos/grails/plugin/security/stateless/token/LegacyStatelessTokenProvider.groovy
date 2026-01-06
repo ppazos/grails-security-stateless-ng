@@ -30,7 +30,10 @@ class LegacyStatelessTokenProvider implements StatelessTokenProvider {
         this.expirationTime = expirationTime
     }
 
-    String generateToken(String userName, String salt=null, Map<String,String> extraData=[:]){
+    // TODO: make this token expire, right now it's not using the expiration time
+
+    String generateToken(String userName, String salt=null, Map<String,String> extraData=[:])
+    {
         def data = [username:userName, extradata: extraData]
 
         if (salt != null) {
@@ -46,6 +49,12 @@ class LegacyStatelessTokenProvider implements StatelessTokenProvider {
         def hash = cryptoService.hash(text)
         String extendedData = "${text}${TOKEN_SIGNING_SEPARATOR}${hash}"
         return extendedData.getBytes("UTF-8").encodeBase64()
+    }
+
+    String generateTokenCustomExpiration(String userName, String salt = null, Map<String, String> extraData = [:], Integer customExpirationTime)
+    {
+        // NOTE: the expiration time is not used!
+        return generateToken(userName, salt, extraData)
     }
 
     Map validateAndExtractToken(String token) {

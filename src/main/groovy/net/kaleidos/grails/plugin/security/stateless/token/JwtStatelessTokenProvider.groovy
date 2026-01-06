@@ -30,7 +30,7 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
       this.expirationTime = expirationTime
    }
 
-   String generateToken(String userName, String salt=null, Map<String,String> extraData=[:])
+   private String generateTokenCommon(String userName, String salt = null, Map<String, String> extraData = [:], Integer anExpirationTime)
    {
       def data = [username:userName]
 
@@ -45,8 +45,8 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
       DateTimeFormatter formatter = ISODateTimeFormat.dateTime()
       data["issued_at"] = formatter.print(new DateTime())
 
-      if (expirationTime != null) {
-         data["expires_at"] = formatter.print(new DateTime().plusMinutes(expirationTime))
+      if (anExpirationTime != null) {
+         data["expires_at"] = formatter.print(new DateTime().plusMinutes(anExpirationTime))
       }
 
       String header = new JsonBuilder([alg:"HS256", typ: "JWT"])
@@ -54,6 +54,16 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
       String signature = cryptoService.hash("${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}")
 
       return "${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}.${signature}"
+   }
+
+   String generateToken(String userName, String salt=null, Map<String,String> extraData=[:])
+   {
+      return generateTokenCommon(userName, salt, extraData, this.expirationTime)
+   }
+
+   String generateTokenCustomExpiration(String userName, String salt, Map<String,String> extraData, Integer customExpirationTime)
+   {
+      return generateTokenCommon(userName, salt, extraData, customExpirationTime)
    }
 
    Map validateAndExtractToken(String token)
@@ -91,14 +101,17 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
       def now = new Date()
 
       def s = parsed.expires_at
-      def f = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
-      SimpleDateFormat sdf = new SimpleDateFormat(f)
-      sdf.setLenient(false)
-      def expires_at = sdf.parse(s)
-
-      if (expires_at < now)
+      if (s)
       {
-         throw new StatelessValidationException("Expired token")
+         def f = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+         SimpleDateFormat sdf = new SimpleDateFormat(f)
+         sdf.setLenient(false)
+         def expires_at = sdf.parse(s)
+
+         if (expires_at < now)
+         {
+            throw new StatelessValidationException("Expired token")
+         }
       }
 
       return parsed
