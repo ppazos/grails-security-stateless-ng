@@ -13,7 +13,7 @@ buildscript {
     }
 }
 
-version "0.1.5"
+version "0.1.6"
 group "grails.security.stateless.ng"
 
 apply plugin:"eclipse"
@@ -77,7 +77,10 @@ bootRun {
 }
 
 bootJar.enabled = false
-jar.enabled = true
+jar {
+    enabled = true
+    archiveClassifier = ''  // Remove the -plain suffix
+}
 
 // Fix for asset-pipeline when assets directory doesn't exist
 tasks.withType(asset.pipeline.gradle.AssetPluginPackage) {
