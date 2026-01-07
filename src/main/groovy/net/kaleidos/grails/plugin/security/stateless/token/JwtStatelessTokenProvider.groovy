@@ -51,9 +51,17 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
 
       String header = new JsonBuilder([alg:"HS256", typ: "JWT"])
       String payload = new JsonBuilder(data).toString()
-      String signature = cryptoService.hash("${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}")
 
-      return "${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}.${signature}"
+      // Debug - log these to see what's being signed
+      println "Header: ${header}"
+      println "Payload: ${payload}"
+      
+      String toSign = "${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}"
+      println "To sign: ${toSign}"
+      
+      String signature = cryptoService.hash(toSign)
+      
+      return "${toSign}.${signature}"
    }
 
    String generateToken(String userName, String salt=null, Map<String,String> extraData=[:])
@@ -61,7 +69,7 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
       return generateTokenCommon(userName, salt, extraData, this.expirationTime)
    }
 
-   String generateTokenCustomExpiration(String userName, String salt, Map<String,String> extraData, Integer customExpirationTime)
+   String generateTokenCustomExpiration(String userName, String salt=null, Map<String,String> extraData, Integer customExpirationTime)
    {
       return generateTokenCommon(userName, salt, extraData, customExpirationTime)
    }

@@ -21,7 +21,7 @@ class GrailsSecurityStatelessNgGrailsPlugin extends Plugin {
     def author = "Pablo Pazos"
     def authorEmail = "pablo.pazos@cabolabs.com"
     def description = '''\
-Grails Security Stateless for Grails 3
+Grails Security Stateless for Grails 5
 '''
     def profiles = ['web']
 

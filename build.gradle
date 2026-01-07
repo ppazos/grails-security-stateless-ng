@@ -13,7 +13,7 @@ buildscript {
     }
 }
 
-version "0.1.6"
+version "0.1.7"
 group "grails.security.stateless.ng"
 
 apply plugin:"eclipse"
@@ -64,10 +64,25 @@ dependencies {
     runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:2.14.2"
     
     testImplementation "org.grails:grails-gorm-testing-support"
-    testImplementation "org.grails:grails-plugin-testing"
+    // testImplementation "org.grails:grails-plugin-testing"
+    // testImplementation "org.grails:grails-plugin-testing:${grailsVersion}"
     testImplementation "org.grails:grails-web-testing-support"
+    
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "io.micronaut:micronaut-inject-groovy"
+    testRuntimeOnly "net.bytebuddy:byte-buddy"
+    testRuntimeOnly "org.objenesis:objenesis"
+    
 
     implementation group: 'joda-time', name: 'joda-time', version: '2.10.1'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
 }
 
 bootRun {
