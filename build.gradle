@@ -13,7 +13,7 @@ buildscript {
     }
 }
 
-version "0.1.7"
+version "0.1.8"
 group "grails.security.stateless.ng"
 
 apply plugin:"eclipse"

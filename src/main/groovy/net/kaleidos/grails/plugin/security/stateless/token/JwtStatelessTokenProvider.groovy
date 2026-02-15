@@ -53,11 +53,11 @@ class JwtStatelessTokenProvider implements StatelessTokenProvider {
       String payload = new JsonBuilder(data).toString()
 
       // Debug - log these to see what's being signed
-      println "Header: ${header}"
-      println "Payload: ${payload}"
+      // println "Header: ${header}"
+      // println "Payload: ${payload}"
       
       String toSign = "${UrlSafeBase64Utils.encode(header.bytes)}.${UrlSafeBase64Utils.encode(payload.bytes)}"
-      println "To sign: ${toSign}"
+      // println "To sign: ${toSign}"
       
       String signature = cryptoService.hash(toSign)
       
